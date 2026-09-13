@@ -152,7 +152,7 @@ Wuff(){
 	local text="$1"
 	shift
 	local -a pos=("$@")
-	local format color nc arf
+	local format color nc arf fold
 		
 	format='%b%b%b\n'
 	nc=""
@@ -537,7 +537,8 @@ DisplayStatus(){
 		"$( RelHpa "$TXT_ON" "$TXT_STATUS" "$HPA_C" )"  
 	elif  (( status == 2 )); then
 		Wuff "$TXT_RULES_INCOMPLETE" "$RED" \
-		"$( RelHpa "$TXT_RULES_INCOMPLETE" "$TXT_STATUS" "$HPA_C" )" 
+		"$( RelHpa "$TXT_RULES_INCOMPLETE" "$TXT_STATUS" "$HPA_C" )"\
+		| 
 		RulesDelete "$intf"
 	elif  (( status == 3 )); then
 		Wuff "$TXT_NO_INTERFACE_FOUND" "$YELLOW" \
