@@ -253,14 +253,14 @@ UnInstall(){
 #----------------------------------------------------------------------#
 
 InstallMain(){
-	install -d -m 751 "$DST_LANG" && \
+	install -d -m 755 "$DST_LANG" && \
 	
 	tar -xf "$SRC_LANG" -C "$DST_LANG" \
 	lang/help_${LANGUAGE}.md \
 	lang/help_${LANGUAGE}.txt \
 	lang/text_${LANGUAGE}.conf && \
-	chmod -R 751 "${DST_LANG}/lang" && \
-	install -T -m 751 "$SRC_MAIN" "$DST_MAIN";
+	chmod -R 755 "${DST_LANG}/lang" && \
+	install -T -m 755 "$SRC_MAIN" "$DST_MAIN";
 	}
 
 

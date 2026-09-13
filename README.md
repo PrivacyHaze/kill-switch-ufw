@@ -44,6 +44,7 @@ sind bereits aktiv, wenn sich ein Paket verirrt.
 - Bash 5.0 oder höher
 - UFW
 - NetworkManager (`nmcli`)
+- systemd
 
 
 #### Installation
@@ -107,6 +108,7 @@ in place when a packet goes astray.
 - Bash 5.0 or later
 - UFW
 - NetworkManager (`nmcli`)
+- systemd
 
 #### Installation
 
@@ -169,6 +171,7 @@ las reglas ya están activas cuando un paquete se desvía.
 - Bash 5.0 o superior
 - UFW
 - NetworkManager (`nmcli`)
+- systemd
 
 #### Instalación
 
