@@ -459,6 +459,7 @@ MenuRequired(){
 		
 		MenuHeader
 		Wuff "$TXT_MR_REQUIRED" "$CYAN"
+		Wuff "$appname - $paket" "10" "-e\n\n"
 		Woof "#"
 		
 		YesOrNo || exit 0
