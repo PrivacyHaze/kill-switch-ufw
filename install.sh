@@ -9,7 +9,7 @@ BASE_DIR="$( dirname "$( realpath "${BASH_SOURCE[0]}" )" )"
 readonly BASE_DIR
 
 readonly SRC_MAIN="${BASE_DIR}/kill-switch-ufw.sh"
-readonly SUM_MAIN="202c516afc22f2b20c82ffa666ee4fbd2cee49059e467f7f7b5daf3b6b336440"
+readonly SUM_MAIN="16b1e0358cea09fbc9034c009d178246bfa38d7fa5e7b9ff92454b29d4e40f9c"
 readonly DST_MAIN="/usr/local/bin/kill-switch-ufw"
 
 readonly SRC_LANG="${BASE_DIR}/lang/lang.tar.xz"
