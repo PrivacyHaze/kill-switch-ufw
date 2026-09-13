@@ -220,11 +220,11 @@ Install(){
 	elif DepCheck apt; then
 		apt install "$app" -y
 	elif DepCheck dnf; then
-		dnf install "app" -y
+		dnf install "$app" -y
 	elif DepCheck "pacman"; then
 		pacman -S "$app" --noconfirm
-	elif DepCheck "apk"; then
-		if ! apk add "app" --noconfirm 2> /dev/null; then
+	elif DepCheck "$apk"; then
+		if ! apk add "$app" --noconfirm 2> /dev/null; then
 			printf "%s\n" "$app $TXT_INSTALLER_COM"
 			YesOrNo || return 0
 		
@@ -259,9 +259,7 @@ InstallMain(){
 	lang/help_${LANGUAGE}.md \
 	lang/help_${LANGUAGE}.txt \
 	lang/text_${LANGUAGE}.conf && \
-	
-	chmod -R 751 "${DST_LANG}/lang"
-	
+	chmod -R 751 "${DST_LANG}/lang" && \
 	install -T -m 751 "$SRC_MAIN" "$DST_MAIN";
 	}
 

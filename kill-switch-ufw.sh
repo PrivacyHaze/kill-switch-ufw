@@ -128,7 +128,7 @@ LoadConfig() {
 }
 
 RequiredSystemd(){
-	command -v systemctl status &> /dev/null
+	command -v systemctl &> /dev/null
 	}
 
 
@@ -204,7 +204,7 @@ RelHpa(){
 
 EndpointIPsec(){
 	DepCheck "swanctl" || return 0
-	sudo swanctl --list-sas --pretty | awk '
+	swanctl --list-sas --pretty | awk '
 		$1 == "remote-host" { ip = $3 }
 		$1 == "remote-port" {
 			if (ip ~ /:/) ip = "[" ip "]"
@@ -232,7 +232,7 @@ EndpointOpenVpn(){
 }
 
 EndpointWg(){
-	local "$intf"
+	local intf="$1"
 	DepCheck "wg" || return 0
 	wg show "$intf" endpoints 2> /dev/null | awk '{print $2}'
 }
@@ -425,7 +425,7 @@ StatusService(){
 	status="$( systemctl is-enabled "$SERVICE" )"
 	printf "%s\n" "$status"
 
-	if [[ "$status" = "not-found" || -n "$status" ]]; then
+	if [[ "$status" = "not-found" || -z "$status" ]]; then
 		return 1
 	fi
 }
@@ -438,21 +438,35 @@ StatusFirewall(){
 	fi
 } 
 
+StatusIpv6(){
+	local ipv
+	ipv="$( grep -- "IPV6=" /etc/default/ufw )"
+	ipv="${ipv#*=}"
+	[[ "${ipv,,}" != no ]]
+}
 
 Status(){
 	local intf="$1"
 	local c_rules
 	local pattern
+	local para
+	local stan
 	
 	pattern="kill[-]switch[-]ufw[-]$intf\$"
 	c_rules="$( ufw status | grep -c -P "$pattern" )"
+	
+	stan=8
+	para=2
 
-	#checks number interfaces * rules(Expept endpoint exceptions)
+	if ! StatusIpv6; then
+		stan=6
+		para=1
+	fi
 	
 	case "$c_rules" in 
 		0) printf "%s\n" "0";; #NO ufw rules are set 
-		8) printf "%s\n" "1";; #ufw rules are set ( !- EndpointExceptions)
-		2) printf "%s\n" "1";; #ufw rules  are set ( !- EndpointExceptions)
+		"$stan") printf "%s\n" "1";; #ufw rules are set ( !- EndpointExceptions)
+		"$para") printf "%s\n" "1";; #ufw rules  are set ( !- EndpointExceptions)
 		*) printf "%s\n" "2";; #ufw rules are set but some are missing
 	esac
 }
@@ -527,7 +541,7 @@ DisplayStatus(){
 		RulesDelete "$intf"
 	elif  (( status == 3 )); then
 		Wuff "$TXT_NO_INTERFACE_FOUND" "$YELLOW" \
-		"$( RelHpa "$TTXT_NO_INTERFACE_FOUND" "$TXT_STATUS" "$HPA_C" )" 
+		"$( RelHpa "$TXT_NO_INTERFACE_FOUND" "$TXT_STATUS" "$HPA_C" )" 
 	fi
 }
 
