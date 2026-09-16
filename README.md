@@ -45,7 +45,7 @@ sind bereits aktiv, wenn sich ein Paket verirrt.
 - Bash 5.0 oder höher
 - UFW
 - NetworkManager (`nmcli`)
-- Wireguard
+- wireguard-tools
 
 Auf vielen Systemen bereits vorinstalliert. Fehlende Tools können über den 
 Installer nachinstalliert werden.
@@ -113,7 +113,7 @@ in place when a packet goes astray.
 - Bash 5.0 or later
 - UFW
 - NetworkManager (`nmcli`)
-- wireguard
+- wireguard-tools
 
 These tools come preinstalled on many systems. Any missing tools can be installed 
 using the installer.
@@ -181,7 +181,7 @@ las reglas ya están activas cuando un paquete se desvía.
 - Bash 5.0 o superior
 - UFW
 - NetworkManager (`nmcli`)
-- wireguard
+- wireguard-tools
 
 Estas herramientas vienen preinstaladas en muchos sistemas. Las que falten pueden
 instalarse mediante el instalador.

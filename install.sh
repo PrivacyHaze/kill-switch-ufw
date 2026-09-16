@@ -521,7 +521,7 @@ main(){
 		MenuSumLang
 		MenuSyntax
 		MenuRequired "ufw" "ufw"
-		MenuRequired "wg" "wireguard"
+		MenuRequired "wg" "wireguard-tools"
 		MenuRequired "nmcli" "network-manager"
 		MenuInstallGlow
 		sleep "$DELAY"
