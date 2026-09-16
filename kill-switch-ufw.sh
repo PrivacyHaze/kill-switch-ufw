@@ -48,16 +48,11 @@ DebugTrapFilter(){
 	declare -F -- "${BASH_COMMAND%% *}" >/dev/null
 	}
 	
-#-----------------------------------------------------------------------
-GetSysLang(){
-	local lang
-	lang="${LANG%%_*}"
-	printf "%s\n" "${lang,,}"
-}
+#----------------------------------------------------------------------
 
 SetLang(){
 	local lang
-	lang="$(GetSysLang)"
+	lang="${LANG%%_*})"
 	if [[ "$(locale charmap 2>/dev/null)" == "UTF-8" ]]; then
 		case "$lang" in
 			de*) lang="de" ;;
@@ -66,7 +61,7 @@ SetLang(){
 			es*) lang="es" ;;
 			it*) lang="it" ;;
 			pl*) lang="pl" ;;
-			zh*) lang="zh" ;;
+			zh*|C*) lang="zh" ;;
 			ru*) lang="ru" ;;
 			hi*) lang="hi" ;;
 			*)   lang="en" ;;
