@@ -9,7 +9,7 @@ BASE_DIR="$( dirname "$( realpath "${BASH_SOURCE[0]}" )" )"
 readonly BASE_DIR
 
 readonly SRC_MAIN="${BASE_DIR}/kill-switch-ufw.sh"
-readonly SUM_MAIN="fda8e260484ca082bf2b168a7107e26a34854ccfa65c8e5f321605a309851382"
+readonly SUM_MAIN="840b6b237d083733711b5742337687bce966f099d4048e9ba5f8afd3ed466fc4"
 readonly DST_MAIN="/usr/local/bin/kill-switch-ufw"
 
 readonly SRC_LANG="${BASE_DIR}/lang/lang.tar.xz"
@@ -521,6 +521,7 @@ main(){
 		MenuSumLang
 		MenuSyntax
 		MenuRequired "ufw" "ufw"
+		MenuRequired "wg" "wireguard"
 		MenuRequired "nmcli" "network-manager"
 		MenuInstallGlow
 		sleep "$DELAY"
