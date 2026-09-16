@@ -21,6 +21,9 @@
 
 <a id="deutsch"></a>
 
+![Screenshot](preview/preview-cachyos.jpg)
+![Screenshot](preview/preview-ubuntu.jpg)
+
 ## 🇩🇪 Deutsch
 
 `kill-switch-ufw` ist eine zuverlässige und leichtgewichtige Lösung für alle,
