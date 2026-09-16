@@ -436,11 +436,25 @@ StatusFirewall(){
 	if [[ "$status" != "active" ]]; then
 		Wuff "$( ufw --force enable )" "$YELLOW"
 	fi
-} 
+}
+
+StatusAnyOn(){
+	local intf
+	
+	for intf in "eth" "wlan" "wwan"; do
+		intf="$( IntfFind "$intf" )"
+		intf="$( Status "$intf" )"
+		
+		(( intf == 1 )) && return 0
+	done
+	
+	return 1
+}
+		
 
 StatusIpv6(){
 	local ipv
-	ipv="$( grep -- "IPV6=" /etc/default/ufw )"
+	ipv="$( grep -- "IPV6=" /etc/default/ufw >/dev/null) "
 	ipv="${ipv#*=}"
 	[[ "${ipv,,}" != no ]]
 }
@@ -469,6 +483,8 @@ Status(){
 		"$para") printf "%s\n" "1";; #ufw rules  are set ( !- EndpointExceptions)
 		*) printf "%s\n" "2";; #ufw rules are set but some are missing
 	esac
+	
+	Wuff "${FUNCNAME[0]} ${FUNCNAME[1]} | $c_rules | $pattern" "$RED"
 }
 
 #----------------------------------------------------------------------#
@@ -506,6 +522,11 @@ DisplayService(){
 		enabled) status="$TXT_OFF"; color="$RED" ;;
 		disabled) status="$TXT_ON"; color="$GREEN";;
 	esac
+	
+	if ! StatusAnyOn; then
+		color="$RED"
+		status="$TXT_OFF"
+	fi
 	
 	Wuff "$TXT_AFTER_REBOOT" \
 	"$( RelHpa "${TXT_INTERFACE} $status" "$TXT_STATUS" "$HPA_B")" "-e"
