@@ -484,7 +484,6 @@ Status(){
 		*) printf "%s\n" "2";; #ufw rules are set but some are missing
 	esac
 	
-	Wuff "${FUNCNAME[0]} ${FUNCNAME[1]} | $c_rules | $pattern" "$RED"
 }
 
 #----------------------------------------------------------------------#
