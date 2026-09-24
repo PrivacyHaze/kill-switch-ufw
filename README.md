@@ -22,7 +22,6 @@
 <a id="deutsch"></a>
 
 ![Screenshot](preview/preview_cachyos.jpg)
-![Screenshot](preview/preview_ubuntu.jpg)
 
 ## 🇩🇪 Deutsch
 

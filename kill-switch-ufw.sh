@@ -147,7 +147,7 @@ Wuff(){
 	local text="$1"
 	shift
 	local -a pos=("$@")
-	local format color nc arf fold
+	local format color nc arf
 		
 	format='%b%b%b\n'
 	nc=""
@@ -197,7 +197,7 @@ RelHpa(){
   
 #----------------------------------------------------------------------#  
 
-EndpointIPsec(){
+EndpointsIPsec(){
 	DepCheck "swanctl" || return 0
 	swanctl --list-sas --pretty | awk '
 		$1 == "remote-host" { ip = $3 }
@@ -208,52 +208,82 @@ EndpointIPsec(){
 	'
 }
 		
-EndpointOpenVpn(){
-	
-    local intf="$1"
-    local pid
+OpenVpnPidsForInterface(){
+	local intf="$1"
+	local pid
 
-    while read -r pid; do
-        grep -qFx -- $'iff:\t'"$intf" \
-            /proc/"$pid"/fdinfo/* 2>/dev/null || continue
-
-        ss -Htunp | awk -v pid="$pid" '
-            index($0, "\"openvpn\",pid=" pid ",") {
-                print $6
-            }
-        '
-        return
-    done < <(pgrep -x openvpn)
+	while IFS= read -r pid; do
+		grep -qE "^iff:[[:space:]]*${intf}[[:space:]]*$" \
+			"/proc/$pid"/fdinfo/* 2> /dev/null || continue
+		printf "%s\n" "$pid"
+	done < <( pgrep -x openvpn 2> /dev/null )
 }
 
-EndpointWg(){
+EndpointsOpenVpn(){
+	local intf="$1"
+	local pid index default_port host port
+	local -a argv
+
+	while IFS= read -r pid; do
+		mapfile -d '' -t argv < "/proc/$pid/cmdline" 2> /dev/null || continue
+		default_port="1194"
+
+		for (( index = 0; index < ${#argv[@]}; index++ )); do
+			[[ "${argv[index]}" == "--port" && "${argv[index + 1]}" =~ ^[0-9]{1,5}$ ]] &&
+				default_port="${argv[index + 1]}"
+		done
+
+		for (( index = 0; index < ${#argv[@]}; index++ )); do
+			[[ "${argv[index]}" == "--remote" ]] || continue
+			host="${argv[index + 1]}"
+			port="$default_port"
+			[[ "${argv[index + 2]}" =~ ^[0-9]{1,5}$ ]] && port="${argv[index + 2]}"
+			[[ -n "$host" && "$port" =~ ^[0-9]{1,5}$ ]] || continue
+			(( port >= 1 && port <= 65535 )) || continue
+
+				printf "%s:%s\n" "$host" "$port" 
+		done
+	done < <( OpenVpnPidsForInterface "$intf" )
+}
+
+
+EndpointsPairs(){
+	local intf="$1"
+	local endps
+
+	endps="$( EndpointsWg "$intf" )"
+	[[ -z "$endps" ]] && endps="$( EndpointsOpenVpn "$intf" )"
+	[[ -z "$endps" ]] && endps="$( EndpointsIPsec )"
+	[[ -n "$endps" ]] || return 1
+	
+	printf "%s\n" "$endps"
+}
+
+EndpointsWg(){
 	local intf="$1"
 	DepCheck "wg" || return 0
 	wg show "$intf" endpoints 2> /dev/null | awk '{print $2}'
 }
 	
-Endpoint(){
+Endpoints(){
 	local intf="$1"
 	local mode="$2"
-	local ip_port 
+	local endpoints 
 	
 	mode="${mode:-ip}"
 	
-	ip_port="$( EndpointWg "$intf" )"
-	[[ -z "$ip_port" ]] && ip_port="$(EndpointOpenVpn "$intf")"
-	[[ -z "$ip_port" ]] && ip_port="$(EndpointIPsec)"
+	endpoints="$( EndpointsPairs "$intf" )"
 
-	if [[ -z "$ip_port" ]]; then
-		Wuff "$TXT_NO_ENDP: $intf" "$RED"
+	if [[ -z "$endpoints" ]]; then
+		printf "TXT_NO_ENDP: $intf" "$RED"
 		return 1
 	fi
 	
-	
-	case "$mode" in
-		ip) printf "%s\n" "${ip_port%:*}";;
-		port) printf "%s\n" "${ip_port#*:}";;
-	esac
+	while IFS=$'\t' read -r endpoints; do
+		printf "%s\n" " $endpoints"
+	done <<< "$endpoints"
 } 
+
 
 #----------------------------------------------------------------------#
 
@@ -296,32 +326,33 @@ RulesDeleteAll(){
 	done < <( RulesGetNumbers )
 }
 
-RulesEndpointException(){
+RulesEndpointsException(){
+	local intf="$1"
 	local intf_vpn
+	local endp
 	
-	for intf_vpn in $( IntfFind "vpn" ); do
-		endp_ip="$( Endpoint "$intf_vpn" "ip" )"
-		endp_port="$( Endpoint "$intf_vpn" "port" )"
-		
-		[[ -n "$endp_ip" && -n "$endp_port" ]] || return 1
-		
-		ufw allow out on "$intf" to "$endp_ip" port "$endp_port" comment "kill-switch-ufw-$intf-$intf_vpn" >/dev/null
+	for intf_vpn in $( IntfFind "vpn" ) ; do
+		Endpoints "$intf_vpn" "ip" |\
+		while read -r endp; do
+			ufw allow out on "$intf" to "${endp%:*}" port "${endp#*:}" comment "kill-switch-ufw-$intf-$intf_vpn" >/dev/null
+		done
 	done
 }
 
-#Deny all except Endpoint
+
+#Deny all except Endpoints
 RulesParanoid(){
 	local intf="$1"
-	RulesEndpointException "$intf"
+	RulesEndpointsException "$intf"
 	ufw deny out on "$intf" comment "kill-switch-ufw-${intf}" >/dev/null
 }
 
-#Allow Endpoint, Deny DNS, Allow private addresses, Deny All 
+#Allow Endpoints, Deny DNS, Allow private addresses, Deny All 
 RulesStandard(){
 	local intf="$1"
 	local -a intfs
 	
-		RulesEndpointException "$intf"
+		RulesEndpointsException "$intf"
 			
 		#dns leak prevention (e.g router over private ip )
 		ufw deny out on "$intf" to any port 53 comment "kill-switch-ufw-$intf" > /dev/null
@@ -675,7 +706,8 @@ main(){
 	local -a opt=("$@")
 	
 	#--- find text dir | load text ---#
-	readonly LANGUAGE="$( SetLang )"
+	LANGUAGE="$( SetLang )"
+	readonly LANGUAGE
 	[[ "$BASE_DIR" == "/usr/local/bin" ]] && readonly DIR_L="/usr/local/share/kill-switch-ufw/lang"
 	[[ "$BASE_DIR" == "/usr/local/bin" ]] || readonly DIR_L="${BASE_DIR}/lang"
 	LoadConfig "${DIR_L}/text_$LANGUAGE.conf"
